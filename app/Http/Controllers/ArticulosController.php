@@ -12,6 +12,9 @@ use App\Models\Catalogo;
 use App\Models\Producto;
 use Intervention\Image\Facades\Image;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class ArticulosController extends Controller
 {
@@ -185,23 +188,16 @@ class ArticulosController extends Controller
             ]);
 
             if ($request->has('especificaciones')) {
-                foreach ($request->especificaciones as $tipo_id => $especificacion_ids) {
-                    if (is_array($especificacion_ids)) {
-                        foreach ($especificacion_ids as $especificacion_id) {
-                            if (!empty($especificacion_id)) {
-                                Catalogo::create([
-                                    'articulo_id' => $articulo->id,
-                                    'tipo_id' => $tipo_id,
-                                    'especificacion_id' => $especificacion_id,
-                                ]);
-                            }
+                foreach ($request->especificaciones as $tipo_id => $especificacion_values) {
+                    $values = is_array($especificacion_values) ? $especificacion_values : [$especificacion_values];
+                    foreach ($values as $especificacion_id) {
+                        if (!empty($especificacion_id)) {
+                            Catalogo::create([
+                                'articulo_id' => $articulo->id,
+                                'tipo_id' => $tipo_id,
+                                'especificacion_id' => $especificacion_id,
+                            ]);
                         }
-                    } elseif (!empty($especificacion_ids)) {
-                        Catalogo::create([
-                            'articulo_id' => $articulo->id,
-                            'tipo_id' => $tipo_id,
-                            'especificacion_id' => $especificacion_ids,
-                        ]);
                     }
                 }
             }
@@ -240,111 +236,233 @@ class ArticulosController extends Controller
     public function articuloSucursalDuplicar(Request $request)
     {
         $request->validate([
-            'articulo_id' => 'required|exists:articulos,id',
+            'nombre' => 'required|string|max:255',
+            'producto_id' => 'required|exists:productos,id',
+            'sucursales_categorias_id' => 'required|exists:sucursales_categorias,id',
+            'stock' => 'required|integer|min:0',
+            'descuento' => 'nullable|numeric|min:0',
+            'descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
+            'fecha_vencimiento' => 'nullable|date',
+            'precio_radio' => 'required|in:nuevo,actual',
+            'precio_nuevo' => 'nullable|numeric|min:0',
+            'precio_actual' => 'required|numeric|min:0',
             'especificaciones' => 'nullable|array',
+            'imagenes' => 'nullable|array',
+            'imagenes.*' => 'image|mimes:jpeg,png,jpg,gif|max:4096',
+            'articulo_id' => 'required|exists:articulos,id',
         ]);
 
-        // 1. Obtener el artículo original
-        $articuloOriginal = Articulo::findOrFail($request->articulo_id);
+        DB::beginTransaction();
 
-        // 2. Obtener el sucursal_articulo asociado
-        $sucursalArticulo = Sucursal_Articulo::where('articulo_id', $articuloOriginal->id)->first();
+        try {
+            $producto = Producto::findOrFail($request->producto_id);
 
-        if (!$sucursalArticulo) {
-            return response()->json(['success' => false, 'message' => 'Sucursal Articulo no encontrado'], 404);
-        }
+            $maxSequence = Articulo::where('codigo', 'like', $producto->codigo . '-%')
+                ->selectRaw('CAST(SUBSTRING_INDEX(codigo, "-", -1) AS UNSIGNED) as sequence_num')
+                ->orderByDesc('sequence_num')
+                ->first();
 
-        // 3. Obtener el código base del artículo (ej: VM-001)
-        $codigoBase = $sucursalArticulo->codigo; // Ej: "VM-001"
+            $nuevoCodigo = ($maxSequence ? $maxSequence->sequence_num : 0) + 1;
+            $codigoCompleto = $producto->codigo . '-' . str_pad($nuevoCodigo, 4, '0', STR_PAD_LEFT);
 
-        // 4. Obtener el siguiente número secuencial para el catálogo
-        $ultimoCatalogo = Catalogo::where('sucursales_articulos_id', $sucursalArticulo->id)
-            ->orderBy('codigo', 'desc')
-            ->first();
+            $precio = $request->precio_radio === 'nuevo'
+                ? $request->precio_nuevo
+                : $request->precio_actual;
 
-        if ($ultimoCatalogo) {
-            $partes = explode('-', $ultimoCatalogo->codigo);
-            $numeroSecuencia = (int) end($partes);
-            $siguienteNumero = $numeroSecuencia + 1;
-        } else {
-            $siguienteNumero = 1;
-        }
-
-        $codigoCatalogo = $codigoBase . '-' . str_pad($siguienteNumero, 3, '0', STR_PAD_LEFT); // Ej: VM-001-002
-
-        $catalogosCreados = [];
-
-        // 5. Crear catálogos según especificaciones seleccionadas → ¡todos con el MISMO código!
-        if ($request->has('especificaciones')) {
-            foreach ($request->especificaciones as $tipo_id => $especificaciones) {
-                if (!is_array($especificaciones)) {
-                    $especificaciones = [$especificaciones];
-                }
-
-                foreach ($especificaciones as $especificacion_id) {
-                    if (empty($especificacion_id)) continue;
-
-                    $catalogo = Catalogo::create([
-                        'sucursales_articulos_id' => $sucursalArticulo->id,
-                        'codigo' => $codigoCatalogo, // ← ¡Mismo código para todos!
-                        'principal' => false,
-                        'tipo_id' => $tipo_id,
-                        'especificacion_id' => $especificacion_id,
-                    ]);
-
-                    $catalogosCreados[] = $catalogo;
-                }
-            }
-        }
-
-        // 6. Si no hay especificaciones, crear un catálogo genérico
-        if (empty($catalogosCreados)) {
-            $catalogo = Catalogo::create([
-                'sucursales_articulos_id' => $sucursalArticulo->id,
-                'codigo' => $codigoCatalogo, // ← Mismo código
-                'principal' => true,
+            $articulo = Articulo::create([
+                'codigo' => $codigoCompleto,
+                'nombre' => $request->nombre,
+                'precio' => $precio,
+                'stock' => $request->stock,
             ]);
 
-            $catalogosCreados[] = $catalogo;
-        }
+            Sucursal_Articulo::create([
+                'precio' => $precio,
+                'stock' => $request->stock,
+                'descuento' => $request->descuento ?? 0,
+                'descuento_porcentaje' => $request->descuento_porcentaje ?? 0,
+                'descuento_habilitado' => ($request->descuento > 0 || $request->descuento_porcentaje > 0),
+                'estado' => 'vigente',
+                'fecha_vencimiento' => $request->fecha_vencimiento,
+                'sucursales_categorias_id' => $request->sucursales_categorias_id,
+                'producto_id' => $request->producto_id,
+                'articulo_id' => $articulo->id,
+            ]);
 
-        // 7. Marcar el PRIMER catálogo como principal, los demás como no principales
-        if (!empty($catalogosCreados)) {
-            $catalogosCreados[0]->update(['principal' => true]);
-
-            for ($i = 1; $i < count($catalogosCreados); $i++) {
-                $catalogosCreados[$i]->update(['principal' => false]);
+            if ($request->has('especificaciones')) {
+                foreach ($request->especificaciones as $tipo_id => $especificacion_values) {
+                    $values = is_array($especificacion_values) ? $especificacion_values : [$especificacion_values];
+                    foreach ($values as $especificacion_id) {
+                        if (!empty($especificacion_id)) {
+                            Catalogo::create([
+                                'articulo_id' => $articulo->id,
+                                'tipo_id' => $tipo_id,
+                                'especificacion_id' => $especificacion_id,
+                            ]);
+                        }
+                    }
+                }
             }
 
-            $catalogoPrincipal = $catalogosCreados[0];
-        } else {
-            $catalogoPrincipal = null;
-        }
+            if ($request->hasFile('imagenes')) {
+                foreach ($request->file('imagenes') as $file) {
+                    if ($file && $file->isValid()) {
+                        $fileName = uniqid('articulo_') . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+                        $destinationPath = public_path('archivos/articulos');
+                        $file->move($destinationPath, $fileName);
 
-        // 8. Guardar imágenes en el catálogo principal (el que tiene principal = 1)
-        if ($request->hasFile('imagen') && $catalogoPrincipal) {
-            foreach ($request->file('imagen') as $img) {
-                $imageName = time() . '_' . uniqid() . '_' . $img->getClientOriginalName();
-                $imagePath = 'archivos/articulos/' . $imageName;
-
-                $image = Image::make($img->getRealPath());
-                $image->resize(800, null, function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-                $image->save(public_path($imagePath));
-
-                Posicion::create([
-                    'imagen' => $imagePath,
-                    'catalogo_id' => $catalogoPrincipal->id, // ← Correcto: catálogo con principal = 1
-                ]);
+                        Posicion::create([
+                            'imagen' => 'archivos/articulos/' . $fileName,
+                            'articulo_id' => $articulo->id,
+                        ]);
+                    }
+                }
             }
-        }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Catálogos duplicados exitosamente.',
-            'codigo_catalogo' => $codigoCatalogo,
-            'catalogos_creados' => count($catalogosCreados),
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Artículo duplicado correctamente.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al duplicar artículo: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error en el servidor: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function eliminarArticulo(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|string',
         ]);
+
+        $ids = json_decode($request->ids);
+
+        if (!is_array($ids)) {
+            return response()->json(['success' => false, 'message' => 'IDs inválidos.'], 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            $articulos = Articulo::whereIn('id', $ids)->get();
+
+            foreach ($articulos as $articulo) {
+
+                $posiciones = Posicion::where('articulo_id', $articulo->id)->get();
+                foreach ($posiciones as $posicion) {
+                    if (File::exists(public_path($posicion->imagen))) {
+                        File::delete(public_path($posicion->imagen));
+                    }
+                }
+
+                Posicion::where('articulo_id', $articulo->id)->delete();
+                Catalogo::where('articulo_id', $articulo->id)->delete();
+                Sucursal_Articulo::where('articulo_id', $articulo->id)->delete();
+
+                $articulo->delete();
+            }
+
+            DB::commit();
+
+            return response()->json(['success' => true, 'message' => 'Artículos eliminados correctamente.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al eliminar artículos: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Ocurrió un error en el servidor.'], 500);
+        }
+    }
+
+    public function actualizarArticulo(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'articulo_id' => 'required|exists:articulos,id',
+            'sucursal_articulo_id' => 'required|exists:sucursal_articulos,id',
+            'nombre' => 'required|string|max:255',
+            'precio' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'descuento' => 'nullable|numeric|min:0',
+            'descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
+            'fecha_vencimiento' => 'nullable|date',
+            'nuevas_imagenes.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'deleted_images' => 'nullable|json',
+            'especificaciones.*' => 'nullable|array',
+            'especificaciones.*.*' => 'nullable|exists:especificaciones,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $articulo = Articulo::findOrFail($request->articulo_id);
+            $sucursalArticulo = Sucursal_Articulo::findOrFail($request->sucursal_articulo_id);
+
+            $articulo->nombre = $request->nombre;
+            // $articulo->codigo = $request->codigo;
+            $articulo->save();
+
+            $sucursalArticulo->precio = $request->precio;
+            $sucursalArticulo->stock = $request->stock;
+            $sucursalArticulo->descuento = $request->descuento ?? 0;
+            $sucursalArticulo->descuento_porcentaje = $request->descuento_porcentaje ?? 0;
+            $sucursalArticulo->fecha_vencimiento = $request->fecha_vencimiento;
+            $sucursalArticulo->save();
+
+            if ($request->has('deleted_images')) {
+                $deletedImageIds = json_decode($request->deleted_images);
+                foreach ($deletedImageIds as $imageId) {
+                    $posicion = Posicion::find($imageId);
+                    if ($posicion && $posicion->articulo_id == $articulo->id) {
+                        Storage::disk('public')->delete($posicion->imagen);
+                        $posicion->delete();
+                    }
+                }
+            }
+
+            if ($request->hasFile('nuevas_imagenes')) {
+                foreach ($request->file('nuevas_imagenes') as $image) {
+                    $path = $image->store('archivos/articulos', 'public');
+                    Posicion::create([
+                        'articulo_id' => $articulo->id,
+                        'imagen' => $path,
+                    ]);
+                }
+            }
+
+            Catalogo::where('articulo_id', $articulo->id)->delete();
+
+            if ($request->has('especificaciones')) {
+                foreach ($request->especificaciones as $tipoId => $especificacionIds) {
+                    if (is_array($especificacionIds)) {
+                        foreach ($especificacionIds as $especificacionId) {
+                            Catalogo::create([
+                                'articulo_id' => $articulo->id,
+                                'tipo_id' => $tipoId,
+                                'especificacion_id' => $especificacionId,
+                            ]);
+                        }
+                    } else {
+                        Catalogo::create([
+                            'articulo_id' => $articulo->id,
+                            'tipo_id' => $tipoId,
+                            'especificacion_id' => $especificacionIds,
+                        ]);
+                    }
+                }
+            }
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Artículo actualizado exitosamente.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al actualizar artículo: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error al actualizar el artículo: ' . $e->getMessage()], 500);
+        }
     }
 }

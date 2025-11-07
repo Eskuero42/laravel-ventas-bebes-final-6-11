@@ -223,7 +223,8 @@ class SucursalesController extends Controller
         $sucursal_articulos = Sucursal_Articulo::with([
             'articulo.posiciones',
             'articulo.catalogos.tipo',
-            'articulo.catalogos.especificacion'
+            'articulo.catalogos.especificacion',
+            'sucursales_categorias.categoria'
         ])
             ->where('sucursales_categorias_id', $sucursal_articulo->sucursales_categorias_id)
             ->where('producto_id', $sucursal_articulo->producto_id)
@@ -254,6 +255,7 @@ class SucursalesController extends Controller
                         // Corregido: Pasar la colección completa de imágenes
                         'imagenes' => $sucursal_articulo->articulo->posiciones,
                         'catalogos' => $sucursal_articulo->articulo->catalogos,
+                        'categoria_tipo' => $sucursal_articulo->sucursales_categorias->categoria->tipo,
                     ];
                 })->values(),
             ];

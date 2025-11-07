@@ -199,22 +199,31 @@
                                                 data-bs-target="#compraArticuloModal"
                                                 data-bs-grupo='@json($grupo)'
                                                 data-bs-codigo="{{ $grupo['codigo'] }}" title="Derivado del articulo">
-                                                <i class="ri-file-copy-2-fill"></i>
+                                                <i class="ri-file-copy-2-fill align-middle me-1 fs-5"></i>
                                             </a>
                                             <a class="btn btn-info comprarArticuloBtn" data-bs-toggle="modal"
                                                 data-bs-target="#compraArticuloModal"
                                                 data-bs-obj='@json($grupo['articulos']->first())'
                                                 data-bs-catalogos='@json($grupo['articulos']->first()['catalogos'])' title="Comprar producto">
-                                                <i class="ri-shopping-cart-line"></i>
+                                                <i class="ri-shopping-cart-2-fill align-middle me-1 fs-5"></i>
                                             </a>
 
                                             &nbsp;
 
-                                            <a class="btn btn-light editArticuloBtn" data-bs-toggle="modal"
+                                            <a class="btn btn-warning editArticuloBtn" data-bs-toggle="modal"
                                                 data-bs-target="#editArticuloModal"
                                                 data-bs-obj='@json($grupo['articulos']->first())'
-                                                data-bs-catalogos='@json($grupo['articulos']->first()['catalogos'])' title="Editar producto">
-                                                <i class="ri-pencil-fill align-bottom"></i>
+                                                data-bs-catalogos='@json($grupo['articulos']->first()['catalogos'])'
+                                                data-product-category-type="{{ $grupo['articulos']->first()['categoria_tipo'] }}"
+                                                title="Editar Articulo">
+                                                <i class="ri-ball-pen-fill align-middle me-1 fs-5"></i>
+                                            </a>
+                                            <!--eliminar articulo-->
+                                            <a class="btn btn-danger deleteArticuloBtn" href="#"
+                                                data-bs-toggle="modal" data-bs-target="#deleteArticuloModal"
+                                                data-ids="{{ json_encode($grupo['articulos']->pluck('articulo.id')->all()) }}"
+                                                title="Eliminar artículo y variaciones">
+                                                <i class="ri-delete-bin-5-fill align-middle me-1 fs-5"></i>
                                             </a>
                                         </div>
                                     </div>
@@ -287,7 +296,8 @@
                                         <div id="{{ $carouselId }}" class="carousel slide" data-bs-ride="carousel">
                                             <div class="carousel-inner">
                                                 @forelse ($imagenes as $index => $posicion)
-                                                    <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
+                                                    <div class="carousel-item {{ $index == 0 ? 'active' : '' }}"
+                                                        data-articulo-id="{{ $articuloParaImagenes['articulo']->id }}">
                                                         <img src="{{ asset($posicion->imagen) }}" class="d-block w-100"
                                                             alt="Imagen de artículo">
                                                     </div>
@@ -383,14 +393,15 @@
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
 
-                <div class="modal-header bg-soft-success justify-content-center position-relative">
+                <div class="modal-header justify-content-center position-relative">
                     <h3 class="modal-title text-uppercase fw-bold text-success-emphasis text-center w-100"
                         id="myExtraLargeModalLabel">
-                        <i class="ri-folder-add-line me-1"></i> Registrar Articulo
+                        <i class="ri-add-circle-fill align-middle me-1"></i> Registrar Articulo
                     </h3>
                     <button type="button" class="btn-close position-absolute end-0 top-50 translate-middle-y me-3"
                         data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
+
                 <form action="" id="addFormArticulo" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="sucursales_categorias_id"
@@ -404,11 +415,11 @@
                                     <div class="row mb-3">
                                         <div class="col-md-3">
                                             <label for="codigo" class="form-label">Código</label>
-                                            <input type="hidden" class="form-control" id="codigo" name="codigo"
+                                            <input type="hidden" class="form-control " id="codigo" name="codigo"
                                                 value="{{ old('codigo') }}" placeholder="Se generará automáticamente"
                                                 readonly>
-                                            <input type="text" class="form-control" id="codigo_vista"
-                                                value="Atomático" readonly>
+                                            <input type="text" class="form-control border-success-subtle"
+                                                id="codigo_vista" value="Atomático" readonly>
                                         </div>
                                         <div class="col-md-3">
                                             <label for="descuento-fijo" class="form-label">Descuento
@@ -416,9 +427,10 @@
                                             <div class="input-group has-validation">
                                                 <span class="input-group-text"><i
                                                         class="ri-money-dollar-circle-line"></i></span>
-                                                <input type="number" name="descuento" class="form-control"
-                                                    id="descuento-fijo" placeholder="Ej: 50.00" min="0"
-                                                    step="0.01" value="0">
+                                                <input type="number" name="descuento"
+                                                    class="form-control border-success-subtle" id="descuento-fijo"
+                                                    placeholder="Ej: 50.00" min="0" step="0.01"
+                                                    value="0">
                                                 <div class="invalid-feedback">Ingrese un valor válido</div>
                                             </div>
                                         </div>
@@ -427,9 +439,9 @@
                                                 porcentual</label>
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="ri-percent-line"></i></span>
-                                                <input type="number" name="descuento_porcentaje" class="form-control"
-                                                    id="descuento-porcentaje" placeholder="0%" min="0"
-                                                    max="100" value="0">
+                                                <input type="number" name="descuento_porcentaje"
+                                                    class="form-control border-success-subtle" id="descuento-porcentaje"
+                                                    placeholder="0%" min="0" max="100" value="0">
                                                 <button class="btn btn-light" type="button" data-bs-toggle="dropdown">
                                                     <i class="ri-arrow-down-s-line"></i>
                                                 </button>
@@ -447,7 +459,8 @@
                                         </div>
                                         <div class="col-md-3">
                                             <label for="stock" class="form-label">Stock inicial</label>
-                                            <input type="number" name="stock" class="form-control" id="stock"
+                                            <input type="number" name="stock"
+                                                class="form-control border-success-subtle" id="stock"
                                                 placeholder="Ej: 10" min="0" value="0" required>
                                         </div>
                                     </div>
@@ -457,18 +470,22 @@
                                             <label class="form-label">Nombre del artículo</label>
 
                                             <div class="form-check mb-2">
-                                                <input class="form-check-input" type="radio" name="nombre_opcion"
-                                                    id="usar_nombre_producto" value="producto" checked>
-                                                <label class="form-check-label" for="usar_nombre_producto">
+                                                <input class="form-check-input border-success-subtle" type="radio"
+                                                    name="nombre_opcion" id="usar_nombre_producto" value="producto"
+                                                    checked>
+                                                <label class="form-check-label border-success-subtle"
+                                                    for="usar_nombre_producto">
                                                     Usar nombre del producto:
                                                     <strong>{{ $sucursal_articulo->producto->nombre }}</strong>
                                                 </label>
                                             </div>
 
                                             <div class="form-check mb-2">
-                                                <input class="form-check-input" type="radio" name="nombre_opcion"
-                                                    id="usar_nombre_personalizado" value="personalizado">
-                                                <label class="form-check-label" for="usar_nombre_personalizado">
+                                                <input class="form-check-input border-success-subtle" type="radio"
+                                                    name="nombre_opcion" id="usar_nombre_personalizado"
+                                                    value="personalizado">
+                                                <label class="form-check-label border-success-subtle"
+                                                    for="usar_nombre_personalizado">
                                                     Escribir un nombre diferente
                                                 </label>
                                             </div>
@@ -476,7 +493,7 @@
                                             <input type="hidden" name="nombre" id="nombre-final"
                                                 value="{{ $sucursal_articulo->producto->nombre }}">
 
-                                            <input type="text" class="form-control mt-2 d-none"
+                                            <input type="text" class="form-control mt-2 d-none border-success-subtle"
                                                 id="nombre-personalizado" placeholder="Nombre personalizado">
                                         </div>
 
@@ -485,25 +502,28 @@
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="radio"
-                                                            name="precio_radio" id="precio_actual" value="actual"
-                                                            checked>
+                                                        <input class="form-check-input border-success-subtle"
+                                                            type="radio" name="precio_radio" id="precio_actual"
+                                                            value="actual" checked>
                                                         <label class="form-check-label mb-2" for="precio_actual">
                                                             Precio actual
                                                         </label>
-                                                        <input type="number" name="precio_actual" class="form-control"
+                                                        <input type="number" name="precio_actual"
+                                                            class="form-control border-success-subtle"
                                                             value="{{ $sucursal_articulo->producto->precio }}" readonly>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="radio"
-                                                            name="precio_radio" id="precio_nuevo" value="nuevo">
+                                                        <input class="form-check-input border-success-subtle"
+                                                            type="radio" name="precio_radio" id="precio_nuevo"
+                                                            value="nuevo">
                                                         <label class="form-check-label mb-2" for="precio_nuevo">Otro
                                                             precio</label>
                                                         <input type="number" name="precio_nuevo" value="0"
-                                                            class="form-control" placeholder="introducir precio"
-                                                            step="0.01" min="0" disabled>
+                                                            class="form-control border-success-subtle"
+                                                            placeholder="introducir precio" step="0.01" min="0"
+                                                            disabled>
                                                     </div>
                                                 </div>
                                             </div>
@@ -517,7 +537,7 @@
                                                     <label for="fecha_vencimiento" class="form-label">Fecha de
                                                         vencimiento</label>
                                                     <input type="date" name="fecha_vencimiento" id="fecha_vencimiento"
-                                                        class="form-control" required>
+                                                        class="form-control border-success-subtle" required>
                                                 </div>
                                             @else
                                                 <input type="hidden" name="fecha_vencimiento" value="">
@@ -531,7 +551,7 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                        <button type="button" class="btn btn-outline-success btn-sm"
                                             id="agregar-imagen">
                                             <i class="ri-add-line"></i> Agregar imagen
                                         </button>
@@ -561,14 +581,14 @@
                                                                         : "especificaciones[{$productoTipo->tipo->id}][]";
                                                                 @endphp
 
-                                                                <input class="form-check-input"
+                                                                <input class="form-check-input border-success-subtle"
                                                                     type="{{ $inputType }}"
                                                                     name="{{ $inputName }}"
                                                                     value="{{ $especificacion->id }}"
                                                                     id="spec_{{ $especificacion->id }}">
 
                                                                 <label
-                                                                    class="form-check-label d-flex align-items-center gap-2"
+                                                                    class="form-check-label d-flex align-items-center gap-2 border-success-subtle"
                                                                     for="spec_{{ $especificacion->id }}">
                                                                     @if ($esColor)
                                                                         <span class="d-inline-block rounded-circle border"
@@ -596,11 +616,14 @@
 
 
                     </div>
-                    <div class="modal-footer mt-3">
-                        <button type="button" class="btn bg-danger" data-bs-dismiss="modal"
-                            style="color: white;">Cerrar</button>
-                        <button type="submit" class="btn bg-success addBtn" style="color: white;">Agregar
-                            Producto</button>
+                    <div class="modal-footer d-flex justify-content-end">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                            <i class="ri-close-line me-1"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-success addBtn">
+                            <i class="ri-check-fill align-middle me-1"></i>
+                            Registrar
+                        </button>
                     </div>
                 </form>
             </div>
@@ -614,41 +637,40 @@
         aria-labelledby="myExtraLargeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
-                <div class="modal-header bg-soft-success justify-content-center position-relative">
+                <div class="modal-header justify-content-center position-relative">
                     <h3 class="modal-title text-uppercase fw-bold text-success-emphasis text-center w-100"
                         id="myExtraLargeModalLabel">
-                        <i class="ri-folder-add-line me-1"></i> Duplicar Articulo
+                        <i class="ri-add-circle-fill align-middle me-1"></i> Duplicar Articulo
                     </h3>
                     <button type="button" class="btn-close position-absolute end-0 top-50 translate-middle-y me-3"
                         data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
+
                 <form action="" id="addFormDuplicarArticulo" enctype="multipart/form-data">
                     @csrf
                     {{-- Campos ocultos con datos del sucursal_articulo original --}}
                     <input type="hidden" name="sucursales_categorias_id"
                         value="{{ $sucursal_articulo->sucursales_categorias_id }}">
                     <input type="hidden" name="producto_id" value="{{ $sucursal_articulo->producto_id }}">
-                    <input type="hidden" name="precio_actual" value="{{ $sucursal_articulo->precio }}">
-                    <input type="text" name="codigo" id="codigo-duplicar" value="">
+                    <input type="hidden" name="articulo_id" id="articulo_id_duplicar">
+                    <input type="hidden" name="precio_actual" id="precio_actual-duplicar" value="">
+                    <input type="hidden" name="codigo" id="codigo-duplicar" value="">
                     <input type="hidden" name="precio_radio" value="actual">
-                    <input type="hidden" name="nombre"
-                        value="{{ $sucursal_articulo->articulo->nombre ?? $sucursal_articulo->producto->nombre }}">
+                    <input type="hidden" name="nombre" id="nombre-duplicar" value="">
                     <input type="hidden" name="stock" value="0"> {{-- Stock inicial en 0, se define en imágenes --}}
-                    <input type="hidden" name="descuento" value="{{ $sucursal_articulo->descuento ?? 0 }}">
-                    <input type="hidden" name="descuento_porcentaje"
-                        value="{{ $sucursal_articulo->descuento_porcentaje ?? 0 }}">
-                    <input type="hidden" name="fecha_vencimiento"
-                        value="{{ $sucursal_articulo->fecha_vencimiento ?? '' }}">
+                    <input type="hidden" name="descuento" id="descuento-duplicar" value="">
+                    <input type="hidden" name="descuento_porcentaje" id="descuento_porcentaje-duplicar" value="">
+                    <input type="hidden" name="fecha_vencimiento" id="fecha_vencimiento-duplicar" value="">
 
                     <div class="modal-body">
                         <div class="row g-3">
                             <div class="col-xl-9">
                                 {{-- Solo mostramos el contenedor de imágenes --}}
-                                <div class="row mb-3" id="imagenes-container-duplicar">
+                                <div class="row mb-3 border-success-subtle" id="imagenes-container-duplicar">
                                     <!-- Inputs de imágenes se agregarán aquí dinámicamente -->
                                 </div>
                                 <div class="mb-3">
-                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                    <button type="button" class="btn btn-outline-success btn-sm"
                                         id="agregar-imagen-duplicar">
                                         <i class="ri-add-line"></i> Agregar imagen
                                     </button>
@@ -667,7 +689,7 @@
                                                         {{ $productoTipo->tipo->nombre }}
                                                     </div>
                                                     @foreach ($productoTipo->tipo->especificaciones as $especificacion)
-                                                        <div class="form-check ms-3">
+                                                        <div class="form-check ms-3 border-success-subtle">
                                                             @php
                                                                 $esColor = $productoTipo->tipo->nombre === 'Colores';
                                                                 $inputType = $esColor ? 'radio' : 'checkbox';
@@ -676,8 +698,8 @@
                                                                     : "especificaciones[{$productoTipo->tipo->id}][]";
                                                             @endphp
 
-                                                            <input class="form-check-input" type="{{ $inputType }}"
-                                                                name="{{ $inputName }}"
+                                                            <input class="form-check-input border-success-subtle"
+                                                                type="{{ $inputType }}" name="{{ $inputName }}"
                                                                 value="{{ $especificacion->id }}"
                                                                 id="spec_{{ $especificacion->id }}">
 
@@ -706,11 +728,14 @@
                         </div>
                     </div>
 
-                    <div class="modal-footer mt-3">
-                        <button type="button" class="btn bg-danger" data-bs-dismiss="modal"
-                            style="color: white;">Cerrar</button>
-                        <button type="submit" class="btn bg-success addaBtn" style="color: white;">Agregar
-                            Producto</button>
+                    <div class="modal-footer d-flex justify-content-end">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                            <i class="ri-close-line me-1"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn bg-success addaBtn">
+                            <i class="ri-check-fill align-middle me-1"></i>
+                            Registrar
+                        </button>
                     </div>
                 </form>
             </div>
@@ -1056,13 +1081,178 @@
             </div>
         </div>
     </div>
+    <!-- Modal eliminar articulo -->
+    <div class="modal fade" id="deleteArticuloModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="deleteArticuloForm">
+                    @csrf
+                    <input type="hidden" name="ids" id="deleteArticuloIds">
+
+                    <div class="modal-header bg-soft-danger justify-content-center position-relative">
+                        <h3 class="modal-title text-uppercase fw-bold text-danger-emphasis text-center w-100"
+                            id="deleteRecordModalLabel">
+                            <i class="ri-delete-bin-5-fill align-middle me-1"></i>
+                            Confirmar Eliminación
+                        </h3>
+                        <button type="button" class="btn-close position-absolute end-0 top-50 translate-middle-y me-3"
+                            data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div class="my-3">
+                            <i class="ri-delete-bin-line display-4 text-danger"></i>
+                            <p class="mt-3 mb-0 fs-5 text-muted">
+                                ¿Estás seguro de que deseas eliminar este registro?
+                            </p>
+                            <p class="text-muted small">Esta acción no se puede deshacer.</p>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                            <i class="ri-close-line align-middle me-1"></i>
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-danger btnDeleteArticulo">
+                            <i class="ri-delete-bin-line align-middle me-1"></i>
+                            Eliminar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- modal de editar articulo -->
+    <div class="modal fade" id="editArticuloModal" tabindex="-1" role="dialog"
+        aria-labelledby="editArticuloModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header justify-content-center position-relative">
+                    <h3 class="modal-title text-uppercase fw-bold text-warning-emphasis text-center w-100"
+                        id="editArticuloModalLabel">
+                        <i class="ri-ball-pen-fill align-middle me-1"></i> Editar Articulo
+                    </h3>
+                    <button type="button" class="btn-close position-absolute end-0 top-50 translate-middle-y me-3"
+                        data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form action="" id="editFormArticulo" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="articulo_id" id="edit_articulo_id">
+                    <input type="hidden" name="sucursal_articulo_id" id="edit_sucursal_articulo_id">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-xl-9">
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="edit_precio" class="form-label">Precio</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Bs.</span>
+                                            <input type="number" name="precio" class="form-control" id="edit_precio"
+                                                step="0.01" min="0" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="edit_stock" class="form-label">Stock</label>
+                                        <input type="number" name="stock" class="form-control" id="edit_stock"
+                                            min="0" required>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="edit_descuento" class="form-label">Descuento fijo</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Bs.</span>
+                                            <input type="number" name="descuento" class="form-control"
+                                                id="edit_descuento" step="0.01" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="edit_descuento_porcentaje" class="form-label">Descuento
+                                            porcentual</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">%</span>
+                                            <input type="number" name="descuento_porcentaje" class="form-control"
+                                                id="edit_descuento_porcentaje" min="0" max="100">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4" id="edit_fecha_vencimiento_container">
+                                        <label for="edit_fecha_vencimiento" class="form-label">Fecha de
+                                            vencimiento</label>
+                                        <input type="date" name="fecha_vencimiento" id="edit_fecha_vencimiento"
+                                            class="form-control">
+                                    </div>
+                                </div>
+
+                                <h6 class="mb-3">Imágenes</h6>
+                                <div class="row mb-3" id="edit_imagenes_container">
+                                    <!-- Existing images will be populated here by JS -->
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit_nuevas_imagenes" class="form-label">Añadir nuevas imágenes</label>
+                                    <input type="file" name="nuevas_imagenes[]" id="edit_nuevas_imagenes"
+                                        class="form-control" multiple>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3">
+                                <label class="form-label">Especificaciones</label>
+                                @if ($productoTipos->isNotEmpty())
+                                    <div class="d-flex flex-wrap">
+                                        @foreach ($productoTipos as $productoTipo)
+                                            <div class="me-4 mb-4">
+                                                <div class="fw-bold mb-2">
+                                                    {{ $productoTipo->tipo?->nombre ?? '—' }}
+                                                </div>
+                                                @foreach ($productoTipo->tipo->especificaciones as $especificacion)
+                                                    <div class="form-check ms-3">
+                                                        @php
+                                                            $esColor = $productoTipo->tipo->nombre === 'Colores';
+                                                            $inputType = $esColor ? 'radio' : 'checkbox';
+                                                            $inputName =
+                                                                "especificaciones[{$productoTipo->tipo->id}]" .
+                                                                ($esColor ? '' : '[]');
+                                                        @endphp
+                                                        <input class="form-check-input" type="{{ $inputType }}"
+                                                            name="{{ $inputName }}" value="{{ $especificacion->id }}"
+                                                            id="edit_spec_{{ $especificacion->id }}">
+                                                        <label class="form-check-label d-flex align-items-center gap-2"
+                                                            for="edit_spec_{{ $especificacion->id }}">
+                                                            @if ($esColor)
+                                                                <span class="d-inline-block rounded-circle border"
+                                                                    style="width: 18px; height: 18px; background-color: {{ preg_match('/^#[0-9A-Fa-f]{6}$/', $especificacion->descripcion) ? $especificacion->descripcion : '#ccc' }};"></span>
+                                                                <span
+                                                                    class="text-muted">{{ $especificacion->descripcion }}</span>
+                                                            @else
+                                                                {{ $especificacion->descripcion }}
+                                                            @endif
+                                                        </label>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <p class="text-muted">Este producto no tiene tipos asociados.</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer mt-3">
+                        <button type="button" class="btn bg-danger" data-bs-dismiss="modal"
+                            style="color: white;">Cerrar</button>
+                        <button type="submit" class="btn bg-info" style="color: white;">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('script')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-
-            // Lógica para radio buttons de nombre personalizado
+            // nombres personalizados
             const nombreOpcionProducto = document.getElementById('usar_nombre_producto');
             const nombreOpcionPersonalizado = document.getElementById('usar_nombre_personalizado');
             const nombrePersonalizadoInput = document.getElementById('nombre-personalizado');
@@ -1070,7 +1260,7 @@
             const productoNombre = "{{ $sucursal_articulo->producto->nombre }}";
 
             function handleNombreChange() {
-                if (nombreOpcionPersonalizado.checked) {
+                if (nombreOpcionPersonalizado && nombreOpcionPersonalizado.checked) {
                     nombrePersonalizadoInput.classList.remove('d-none');
                     nombreFinalInput.value = nombrePersonalizadoInput.value;
                 } else {
@@ -1079,62 +1269,174 @@
                 }
             }
 
-            nombreOpcionProducto.addEventListener('change', handleNombreChange);
-            nombreOpcionPersonalizado.addEventListener('change', handleNombreChange);
-            nombrePersonalizadoInput.addEventListener('input', () => {
-                if (nombreOpcionPersonalizado.checked) {
-                    nombreFinalInput.value = nombrePersonalizadoInput.value;
-                }
-            });
+            if (nombreOpcionProducto && nombreOpcionPersonalizado) {
+                nombreOpcionProducto.addEventListener('change', handleNombreChange);
+                nombreOpcionPersonalizado.addEventListener('change', handleNombreChange);
+                nombrePersonalizadoInput.addEventListener('input', () => {
+                    if (nombreOpcionPersonalizado.checked) {
+                        nombreFinalInput.value = nombrePersonalizadoInput.value;
+                    }
+                });
+                handleNombreChange();
+            }
 
+            // precio
             const precioActualRadio = document.getElementById('precio_actual');
             const precioNuevoRadio = document.getElementById('precio_nuevo');
             const precioNuevoInput = document.querySelector('input[name="precio_nuevo"]');
 
             function handlePrecioChange() {
-                precioNuevoInput.disabled = !precioNuevoRadio.checked;
+                if (precioNuevoInput) {
+                    precioNuevoInput.disabled = !precioNuevoRadio.checked;
+                }
             }
 
-            precioActualRadio.addEventListener('change', handlePrecioChange);
-            precioNuevoRadio.addEventListener('change', handlePrecioChange);
-            handleNombreChange();
-            handlePrecioChange();
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
+            if (precioActualRadio && precioNuevoRadio) {
+                precioActualRadio.addEventListener('change', handlePrecioChange);
+                precioNuevoRadio.addEventListener('change', handlePrecioChange);
+                handlePrecioChange();
+            }
+
+            // imagenes dinamicas
             const container = document.getElementById('imagenes-container');
             const botonAgregar = document.getElementById('agregar-imagen');
             let contador = 0;
 
-            // Función para crear un nuevo campo de imagen
             function crearCampoImagen() {
                 contador++;
                 const colDiv = document.createElement('div');
                 colDiv.className = 'col-md-4';
                 colDiv.innerHTML = `
-            <div class="mb-3 imagen-item">
-                <label for="imagen_${contador}" class="form-label">Imagen ${contador}
-                    <button type="button" class="btn btn-sm btn-outline-danger ms-2 quitar-imagen">
-                        <i class="ri-delete-bin-line"></i>
-                    </button>
-                </label>
-                <input type="file" name="imagen[]" id="imagen_${contador}" class="form-control" accept="image/*">
-            </div>
-        `;
+                    <div class="mb-3 imagen-item">
+                        <label for="imagen_${contador}" class="form-label">Imagen ${contador}
+                            <button type="button" class="btn btn-sm btn-outline-danger ms-2 quitar-imagen">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        </label>
+                        <input type="file" name="imagen[]" id="imagen_${contador}" class="form-control" accept="image/*">
+                    </div>
+                `;
                 container.appendChild(colDiv);
-
 
                 colDiv.querySelector('.quitar-imagen').addEventListener('click', function() {
                     container.removeChild(colDiv);
                 });
             }
-            botonAgregar.addEventListener('click', crearCampoImagen);
+
+            if (botonAgregar) {
+                botonAgregar.addEventListener('click', crearCampoImagen);
+            }
+
+            // carrusel
+            document.querySelectorAll('.carousel').forEach(function(carouselEl) {
+                carouselEl.addEventListener('slid.bs.carousel', function() {
+                    const activeSlide = carouselEl.querySelector('.carousel-item.active');
+                    const articuloId = activeSlide.getAttribute('data-articulo-id');
+
+                    const especificacionesContainer = carouselEl.closest('.row.mt-3').querySelector(
+                        '.col-sm-5 .row');
+
+                    especificacionesContainer.querySelectorAll('.especificaciones-articulo')
+                        .forEach(function(el) {
+                            el.style.display = 'none';
+                        });
+
+                    const especificacionesActivo = especificacionesContainer.querySelector(
+                        `[data-articulo-id="${articuloId}"]`);
+                    if (especificacionesActivo) {
+                        especificacionesActivo.style.display = 'block';
+                    }
+                });
+            });
+
+            // modal
+            const compraModal = document.getElementById('compraArticuloModal');
+            if (compraModal) {
+                compraModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const grupo = JSON.parse(button.getAttribute('data-bs-grupo'));
+
+                    // obtener IDs de especificaciones
+                    const usadas = new Set();
+                    grupo.articulos.forEach(art => {
+                        art.catalogos.forEach(cat => {
+                            usadas.add(cat.especificacion_id);
+                        });
+                    });
+
+                    // deshabilitar especificaciones ya usadas
+                    document.querySelectorAll('#compraArticuloModal input[name^="especificaciones"]')
+                        .forEach(input => {
+                            input.disabled = false;
+                            input.parentElement.classList.remove('text-muted');
+                            input.parentElement.removeAttribute('title');
+                        });
+
+                    // carga los dato del articulo para duplicar
+                    if (grupo) {
+                        const articuloOriginal = grupo.articulos[0];
+                        const articuloIdInput = document.getElementById('articulo_id_duplicar');
+                        const precioInput = document.getElementById('precio_actual-duplicar');
+                        const nombreInput = document.getElementById('nombre-duplicar');
+                        const descuentoInput = document.getElementById('descuento-duplicar');
+                        const descuentoPorcentajeInput = document.getElementById(
+                            'descuento_porcentaje-duplicar');
+                        const fechaVencimientoInput = document.getElementById('fecha_vencimiento-duplicar');
+
+                        if (articuloIdInput) articuloIdInput.value = articuloOriginal.articulo.id;
+                        if (precioInput) precioInput.value = articuloOriginal.precio;
+                        if (nombreInput) nombreInput.value = articuloOriginal.articulo.nombre;
+                        if (descuentoInput) descuentoInput.value = articuloOriginal.descuento || 0;
+                        if (descuentoPorcentajeInput) descuentoPorcentajeInput.value = articuloOriginal
+                            .descuento_porcentaje || 0;
+                        if (fechaVencimientoInput) fechaVencimientoInput.value = articuloOriginal
+                            .fecha_vencimiento || '';
+                    }
+
+                    const codigo = button.getAttribute('data-bs-codigo');
+                    const codigoInput = document.getElementById('codigo-duplicar');
+                    if (codigoInput) codigoInput.value = codigo || '';
+                });
+
+                // duplicar imagenes
+                compraModal.addEventListener('shown.bs.modal', function() {
+                    const containerDuplicar = document.getElementById('imagenes-container-duplicar');
+                    const btnDuplicar = document.getElementById('agregar-imagen-duplicar');
+
+                    if (!containerDuplicar || !btnDuplicar) return;
+
+                    containerDuplicar.innerHTML = '';
+                    agregarImagenDuplicar(containerDuplicar);
+
+                    btnDuplicar.onclick = () => agregarImagenDuplicar(containerDuplicar);
+                });
+            }
+
+            function agregarImagenDuplicar(container) {
+                const index = container.children.length + 1;
+                const div = document.createElement('div');
+                div.className = 'col-md-4 mb-2';
+                div.innerHTML = `
+                    <label class="form-label">Imagen ${index}</label>
+                    <input type="file" name="imagenes[]" class="form-control" accept="image/*" required>
+                    <button type="button" class="btn btn-sm btn-outline-danger mt-1 remove-img">Eliminar</button>
+                `;
+                container.appendChild(div);
+
+                div.querySelector('.remove-img').onclick = () => {
+                    container.removeChild(div);
+                    // Reordenar números
+                    Array.from(container.children).forEach((el, i) => {
+                        el.querySelector('label').textContent = `Imagen ${i + 1}`;
+                    });
+                };
+            }
         });
     </script>
+
     <script>
         $(document).ready(function() {
-            //registar articulo
+            // registrar articulo
             $('#addFormArticulo').submit(function(e) {
                 e.preventDefault();
                 $('.addBtn').prop('disabled', true);
@@ -1157,15 +1459,15 @@
                         }
                     },
                     error: function(xhr) {
-                        const error = xhr.responseJSON?.message ||
-                            'Error al guardar el artículo.';
-                        alert(error);
+                        alert(xhr.responseJSON?.message || 'Error al guardar el artículo.');
                     },
                     complete: function() {
                         $('.addBtn').prop('disabled', false);
                     }
                 });
             });
+
+            // duplucar artituclo
             $('#addFormDuplicarArticulo').submit(function(e) {
                 e.preventDefault();
                 $('.addaBtn').prop('disabled', true);
@@ -1186,9 +1488,7 @@
                         }
                     },
                     error: function(xhr) {
-                        const error = xhr.responseJSON?.message ||
-                            'Error al guardar el artículo.';
-                        alert(error);
+                        alert(xhr.responseJSON?.message || 'Error al guardar el artículo.');
                     },
                     complete: function() {
                         $('.addaBtn').prop('disabled', false);
@@ -1196,7 +1496,7 @@
                 });
             });
 
-            //registrar detalles
+            // registrar un detalle
             $('#formNuevoDetalle').submit(function(e) {
                 e.preventDefault();
                 const formData = new FormData(this);
@@ -1221,7 +1521,7 @@
                 });
             });
 
-            //editar detalles
+            // editar varios detalles
             $('#formEditarDetalles').submit(function(e) {
                 e.preventDefault();
                 const formData = new FormData(this);
@@ -1245,7 +1545,14 @@
                 });
             });
 
-            //editar un detalle
+            // editar un detalle 
+            $('.editBtn-uno').click(function() {
+                var data = $(this).data('detalle');
+                $('#editDetalleId').val(data.id);
+                $('#editTitulo').val(data.titulo);
+                $('#editDescripcion').val(data.descripcion);
+            });
+
             $('#formEditarUnDetalle').submit(function(e) {
                 e.preventDefault();
                 $('.updateBtn-uno').prop('disabled', true);
@@ -1263,19 +1570,11 @@
                         if (res.success) {
                             location.reload();
                         }
-                    },
+                    }
                 });
             });
 
-            $('.editBtn-uno').click(function() {
-                var data = $(this).data('detalle');
-                console.log(data);
-                $('#editDetalleId').val(data.id);
-                $('#editTitulo').val(data.titulo);
-                $('#editDescripcion').val(data.descripcion);
-            });
-
-            //eliminar un detalle
+            // eliminar un detalle
             $('.delete-detalle-btn').click(function() {
                 var id = $(this).data('id');
                 $('#deleteUnDetalleId').val(id);
@@ -1285,12 +1584,10 @@
                 e.preventDefault();
                 $('.btnDelete').prop('disabled', true);
 
-                var formData = $(this).serialize();
-
                 $.ajax({
                     url: "{{ route('admin.eliminar.detalle') }}",
                     type: "POST",
-                    data: formData,
+                    data: $(this).serialize(),
                     success: function(res) {
                         alert(res.message);
                         $('.btnDelete').prop('disabled', false);
@@ -1299,7 +1596,6 @@
                         }
                     }
                 });
-
             });
 
             // registrar caracteristicas
@@ -1327,7 +1623,7 @@
                 });
             });
 
-            // editar caracteristicas
+            // editar varias caracteristicas
             $('#formEditarCaracteristicas').submit(function(e) {
                 e.preventDefault();
                 const formData = new FormData(this);
@@ -1351,14 +1647,11 @@
                 });
             });
 
-            // editar una caracterIstica
+            // editar una caracteristica
             $('.edit-caracteristica-btn').click(function() {
                 var data = $(this).data('caracteristica');
-                console.log(data);
                 $('#editCaracteristicaId').val(data.id);
                 $('#editCaracteristicaDescripcion').val(data.descripcion);
-
-                // Mostrar el ícono actual (si existe)
                 $('#iconoActual').attr('src', data.icono ?? '').toggle(!!data.icono);
             });
 
@@ -1383,22 +1676,19 @@
                 });
             });
 
-            // eliminar una caracterIstica
+            // eliminar una caracteristica
             $('.delete-caracteristica-btn').click(function() {
-                var id = $(this).data('id');
-                $('#deleteCaracteristicaId').val(id);
+                $('#deleteCaracteristicaId').val($(this).data('id'));
             });
 
             $('#deleteCaracteristicaForm').submit(function(e) {
                 e.preventDefault();
                 $('.btnDeleteCaracteristica').prop('disabled', true);
 
-                var formData = $(this).serialize();
-
                 $.ajax({
                     url: "{{ route('admin.eliminar.caracteristica') }}",
                     type: "POST",
-                    data: formData,
+                    data: $(this).serialize(),
                     success: function(res) {
                         alert(res.message);
                         $('.btnDeleteCaracteristica').prop('disabled', false);
@@ -1408,123 +1698,137 @@
                     }
                 });
             });
-        });
-    </script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Para cada grupo (cada carrusel)
-            document.querySelectorAll('.carousel').forEach(function(carouselEl) {
-                const carouselId = carouselEl.id;
+            // eliminar arituculo
+            $('.deleteArticuloBtn').click(function() {
+                $('#deleteArticuloIds').val(JSON.stringify($(this).data('ids')));
+            });
 
-                // Escuchar el evento de cambio de slide
-                carouselEl.addEventListener('slid.bs.carousel', function() {
-                    // Obtener el slide activo
-                    const activeSlide = carouselEl.querySelector('.carousel-item.active');
-                    const articuloId = activeSlide.getAttribute('data-articulo-id');
+            $('#deleteArticuloForm').submit(function(e) {
+                e.preventDefault();
+                $('.btnDeleteArticulo').prop('disabled', true);
 
-                    // Ocultar todas las especificaciones del grupo
-                    const especificacionesContainer = carouselEl.closest('.row.mt-3').querySelector(
-                        '.col-sm-5 .row');
-                    especificacionesContainer.querySelectorAll('.especificaciones-articulo')
-                        .forEach(function(el) {
-                            el.style.display = 'none';
-                        });
-
-                    // Mostrar solo las del artículo activo
-                    const especificacionesActivo = especificacionesContainer.querySelector(
-                        `[data-articulo-id="${articuloId}"]`);
-                    if (especificacionesActivo) {
-                        especificacionesActivo.style.display = 'block';
+                $.ajax({
+                    url: "{{ route('admin.articulos.eliminar') }}",
+                    type: "POST",
+                    data: $(this).serialize(),
+                    success: function(res) {
+                        alert(res.message);
+                        if (res.success) {
+                            location.reload();
+                        } else {
+                            $('.btnDeleteArticulo').prop('disabled', false);
+                        }
+                    },
+                    error: function(xhr) {
+                        alert(xhr.responseJSON?.message || 'Error al eliminar');
+                        $('.btnDeleteArticulo').prop('disabled', false);
                     }
                 });
             });
-        });
-    </script>
 
+            // editar articulo - llena datos modal
+            $('.editArticuloBtn').on('click', function() {
+                const articulo = $(this).data('bs-obj');
+                const catalogos = $(this).data('bs-catalogos');
+                const productCategoryType = $(this).data('product-category-type');
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const compraModal = document.getElementById('compraArticuloModal');
-            compraModal.addEventListener('show.bs.modal', function(event) {
-                const button = event.relatedTarget;
-                const grupo = JSON.parse(button.getAttribute('data-bs-grupo'));
+                $('#edit_articulo_id').val(articulo.articulo.id);
+                $('#edit_sucursal_articulo_id').val(articulo.id);
+                $('#edit_precio').val(articulo.precio);
+                $('#edit_stock').val(articulo.stock);
+                $('#edit_descuento').val(articulo.descuento);
+                $('#edit_descuento_porcentaje').val(articulo.descuento_porcentaje);
+                $('#edit_fecha_vencimiento').val(articulo.fecha_vencimiento);
 
-                // Obtener IDs de especificaciones ya usadas en este grupo
-                const usadas = new Set();
-                grupo.articulos.forEach(art => {
-                    art.catalogos.forEach(cat => {
-                        usadas.add(cat.especificacion_id);
+                if (productCategoryType === 'Otros') {
+                    $('#edit_fecha_vencimiento_container').show();
+                } else {
+                    $('#edit_fecha_vencimiento_container').hide();
+                    $('#edit_fecha_vencimiento').val('');
+                }
+
+                const editImagenesContainer = $('#edit_imagenes_container');
+                editImagenesContainer.empty();
+
+                if (articulo.imagenes && articulo.imagenes.length > 0) {
+                    articulo.imagenes.forEach(function(imagen, index) {
+                        const imageUrl = `{{ asset('') }}${imagen.imagen}`;
+                        editImagenesContainer.append(`
+                            <div class="col-md-4 mb-3 image-item-edit" data-image-id="${imagen.id}">
+                                <div class="card mb-0">
+                                    <div class="card-body p-2">
+                                        <img src="${imageUrl}" class="img-fluid mb-2" alt="Imagen ${index + 1}">
+                                        <button type="button" class="btn btn-danger btn-sm w-100 delete-existing-image" data-image-id="${imagen.id}">Eliminar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
                     });
-                });
+                } else {
+                    editImagenesContainer.append('<p class="text-muted">No hay imágenes existentes.</p>');
+                }
 
-                // Deshabilitar inputs ya usados
-                document.querySelectorAll('#compraArticuloModal input[name^="especificaciones"]').forEach(
-                    input => {
-                        if (usadas.has(parseInt(input.value))) {
-                            input.disabled = true;
-                            input.parentElement.classList.add('text-muted');
-                            input.parentElement.title = 'Ya en uso en este grupo';
-                        } else {
-                            input.disabled = false;
-                            input.parentElement.classList.remove('text-muted');
-                            input.parentElement.removeAttribute('title');
+                editImagenesContainer.off('click', '.delete-existing-image').on('click',
+                    '.delete-existing-image',
+                    function() {
+                        const imageId = $(this).data('image-id');
+                        if (confirm('¿Estás seguro de que quieres eliminar esta imagen?')) {
+                            $(this).closest('.image-item-edit').remove();
+
+                            let deletedImagesInput = $(
+                                '#editFormArticulo input[name="deleted_images"]');
+                            if (deletedImagesInput.length === 0) {
+                                deletedImagesInput = $('<input type="hidden" name="deleted_images">');
+                                $('#editFormArticulo').append(deletedImagesInput);
+                            }
+                            let deletedImages = deletedImagesInput.val() ? JSON.parse(deletedImagesInput
+                                .val()) : [];
+                            deletedImages.push(imageId);
+                            deletedImagesInput.val(JSON.stringify(deletedImages));
                         }
                     });
-            });
-        });
-    </script>
 
+                $('#editArticuloModal input[name^="especificaciones"]').prop('checked', false);
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // --- Script para el MODAL DE DUPLICACIÓN ---
-            const modalDuplicar = document.getElementById('compraArticuloModal');
-
-            if (modalDuplicar) {
-                modalDuplicar.addEventListener('shown.bs.modal', function() {
-                    const container = document.getElementById('imagenes-container-duplicar');
-                    const btn = document.getElementById('agregar-imagen-duplicar');
-
-                    if (!container || !btn) return;
-
-                    container.innerHTML = '';
-                    agregarImagen(container, 'duplicar');
-
-                    btn.onclick = () => agregarImagen(container, 'duplicar');
-                });
-            }
-
-            function agregarImagen(container, tipo) {
-                const index = container.children.length + 1;
-                const div = document.createElement('div');
-                div.className = 'col-md-4 mb-2';
-                div.innerHTML = `
-            <label class="form-label">Imagen ${index}</label>
-            <input type="file" name="imagenes[]" class="form-control" accept="image/*" required>
-            <button type="button" class="btn btn-sm btn-outline-danger mt-1 remove-img">Eliminar</button>
-        `;
-                container.appendChild(div);
-
-                div.querySelector('.remove-img').onclick = () => {
-                    container.removeChild(div);
-                    // Reordenar números
-                    Array.from(container.children).forEach((el, i) => {
-                        el.querySelector('label').textContent = `Imagen ${i + 1}`;
+                if (catalogos && catalogos.length > 0) {
+                    catalogos.forEach(function(catalogo) {
+                        const specId = catalogo.especificacion_id;
+                        const inputElement = $(`#edit_spec_${specId}`);
+                        if (inputElement.length) {
+                            inputElement.prop('checked', true);
+                        }
                     });
-                };
-            }
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const modal = document.getElementById('compraArticuloModal');
-            if (!modal) return;
+                }
+            });
 
-            modal.addEventListener('show.bs.modal', function(event) {
-                const button = event.relatedTarget;
-                const codigo = button.getAttribute('data-bs-codigo');
-                document.getElementById('codigo-duplicar').value = codigo || '';
+            // editar articulo
+            $('#editFormArticulo').submit(function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+
+                const deletedImagesInput = $('#editFormArticulo input[name="deleted_images"]');
+                if (deletedImagesInput.length && deletedImagesInput.val()) {
+                    formData.append('deleted_images', deletedImagesInput.val());
+                }
+
+                $.ajax({
+                    url: "{{ route('admin.articulos.actualizar') }}",
+                    method: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        alert(res.message);
+                        if (res.success) {
+                            $('#editArticuloModal').modal('hide');
+                            location.reload();
+                        }
+                    },
+                    error: function(xhr) {
+                        alert(xhr.responseJSON?.message || 'Error al actualizar el artículo.');
+                    }
+                });
             });
         });
     </script>

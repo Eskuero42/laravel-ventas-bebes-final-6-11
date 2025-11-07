@@ -107,6 +107,8 @@ Route::post('/admin/productos/sucursales/editar', [ProductosController::class, '
 Route::post('/admin/articulos/registrar', [ArticulosController::class, 'articulosRegistrar'])->name('admin.articulos.registrar');
 Route::post('/admin/articulos/sucursales/registrar', [ArticulosController::class, 'articuloSucursalRegistrar'])->name('admin.articulos.sucursales.registrar');
 Route::post('/admin/articulos/sucursales/duplicar', [ArticulosController::class, 'articuloSucursalDuplicar'])->name('admin.articulos.sucursales.duplicar');
+Route::post('/admin/articulos/actualizar', [ArticulosController::class, 'actualizarArticulo'])->name('admin.articulos.actualizar');
+Route::post('/admin/articulos/eliminar-articulo', [ArticulosController::class,'eliminarArticulo'])->name('admin.articulos.eliminar');
 //Detalles
 Route::post('/admin/detalles/registrar', [DetallesController::class, 'registrardetalles'])->name('admin.registrar.detalles');
 Route::post('/admin/detalles/editar-varios', [DetallesController::class, 'editardetalles'])->name('admin.editar.detalles');
