@@ -381,7 +381,7 @@ class ArticulosController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'articulo_id' => 'required|exists:articulos,id',
-            'sucursal_articulo_id' => 'required|exists:sucursal_articulos,id',
+            'sucursal_articulo_id' => 'required|exists:sucursales_articulos,id',
             'nombre' => 'required|string|max:255',
             'precio' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
@@ -390,7 +390,6 @@ class ArticulosController extends Controller
             'fecha_vencimiento' => 'nullable|date',
             'nuevas_imagenes.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'deleted_images' => 'nullable|json',
-            'especificaciones.*' => 'nullable|array',
             'especificaciones.*.*' => 'nullable|exists:especificaciones,id',
         ]);
 
@@ -426,12 +425,17 @@ class ArticulosController extends Controller
             }
 
             if ($request->hasFile('nuevas_imagenes')) {
-                foreach ($request->file('nuevas_imagenes') as $image) {
-                    $path = $image->store('archivos/articulos', 'public');
-                    Posicion::create([
-                        'articulo_id' => $articulo->id,
-                        'imagen' => $path,
-                    ]);
+                foreach ($request->file('nuevas_imagenes') as $file) {
+                    if ($file && $file->isValid()) {
+                        $fileName = uniqid('articulo_') . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+                        $destinationPath = public_path('archivos/articulos');
+                        $file->move($destinationPath, $fileName);
+
+                        Posicion::create([
+                            'imagen' => 'archivos/articulos/' . $fileName,
+                            'articulo_id' => $articulo->id,
+                        ]);
+                    }
                 }
             }
 
@@ -463,6 +467,43 @@ class ArticulosController extends Controller
             DB::rollBack();
             Log::error('Error al actualizar artículo: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Error al actualizar el artículo: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function ajustarStock(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'sucursal_articulo_id' => 'required|exists:sucursales_articulos,id',
+            'cantidad' => 'required|integer|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $sucursalArticulo = Sucursal_Articulo::findOrFail($request->sucursal_articulo_id);
+
+            if ($request->action === 'add') {
+                $sucursalArticulo->increment('stock', $request->cantidad);
+                $message = 'Stock añadido correctamente.';
+            } else {
+                if ($sucursalArticulo->stock < $request->cantidad) {
+                    DB::rollBack();
+                    return response()->json(['success' => false, 'message' => 'No se puede restar más stock del existente.'], 400);
+                }
+                $sucursalArticulo->decrement('stock', $request->cantidad);
+                $message = 'Stock restado correctamente.';
+            }
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => $message]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al ajustar stock: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error al ajustar el stock: ' . $e->getMessage()], 500);
         }
     }
 }

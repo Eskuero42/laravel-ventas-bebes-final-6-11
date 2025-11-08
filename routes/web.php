@@ -109,6 +109,7 @@ Route::post('/admin/articulos/sucursales/registrar', [ArticulosController::class
 Route::post('/admin/articulos/sucursales/duplicar', [ArticulosController::class, 'articuloSucursalDuplicar'])->name('admin.articulos.sucursales.duplicar');
 Route::post('/admin/articulos/actualizar', [ArticulosController::class, 'actualizarArticulo'])->name('admin.articulos.actualizar');
 Route::post('/admin/articulos/eliminar-articulo', [ArticulosController::class,'eliminarArticulo'])->name('admin.articulos.eliminar');
+Route::post('/admin/articulos/ajustar-stock', [ArticulosController::class, 'ajustarStock'])->name('admin.articulos.ajustar-stock');
 //Detalles
 Route::post('/admin/detalles/registrar', [DetallesController::class, 'registrardetalles'])->name('admin.registrar.detalles');
 Route::post('/admin/detalles/editar-varios', [DetallesController::class, 'editardetalles'])->name('admin.editar.detalles');
@@ -127,3 +128,5 @@ Route::get('/admin/ventas/vender', [App\Http\Controllers\VentasController::class
 // Pedidos
 Route::get('/admin/pedidos/listar', [App\Http\Controllers\PedidosController::class, 'ver'])->name('admin.pedidos.listar');
 Route::get('/admin/pedidos/ver/', [App\Http\Controllers\PedidosController::class, 'pedidoVer'])->name('admin.pedidos.ver');
+
+

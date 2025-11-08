@@ -195,21 +195,19 @@
                                     </div>
                                     <div class="flex-shrink-0">
                                         <div>
+                                            <!--duplicar articulo-->
                                             <a class="btn btn-success duplicarArticuloBtn" data-bs-toggle="modal"
                                                 data-bs-target="#compraArticuloModal"
                                                 data-bs-grupo='@json($grupo)'
                                                 data-bs-codigo="{{ $grupo['codigo'] }}" title="Derivado del articulo">
                                                 <i class="ri-file-copy-2-fill align-middle me-1 fs-5"></i>
                                             </a>
-                                            <a class="btn btn-info comprarArticuloBtn" data-bs-toggle="modal"
-                                                data-bs-target="#compraArticuloModal"
-                                                data-bs-obj='@json($grupo['articulos']->first())'
-                                                data-bs-catalogos='@json($grupo['articulos']->first()['catalogos'])' title="Comprar producto">
-                                                <i class="ri-shopping-cart-2-fill align-middle me-1 fs-5"></i>
+                                            <!--añadir stock articulo-->
+                                            <a class="btn btn-secondary ajustarStockBtn" data-bs-toggle="modal"
+                                                data-bs-target="#ajustarStockModal"
+                                                data-bs-obj='@json($grupo['articulos']->first())' title="Ajustar Stock">
+                                                <i class="ri-stack-line align-middle me-1 fs-5"></i>
                                             </a>
-
-                                            &nbsp;
-
                                             <a class="btn btn-warning editArticuloBtn" data-bs-toggle="modal"
                                                 data-bs-target="#editArticuloModal"
                                                 data-bs-obj='@json($grupo['articulos']->first())'
@@ -1144,16 +1142,21 @@
                             <div class="col-xl-9">
                                 <div class="row mb-3">
                                     <div class="col-md-4">
-                                        <label for="edit_precio" class="form-label">Precio</label>
+                                        <label for="edit_nombre" class="form-label">Nombre del Artículo</label>
+                                        <input type="text" name="nombre" class="form-control border-warning-subtle" id="edit_nombre"
+                                            required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="edit_precio" class="form-label border-warning-subtle">Precio</label>
                                         <div class="input-group">
-                                            <span class="input-group-text">Bs.</span>
-                                            <input type="number" name="precio" class="form-control" id="edit_precio"
+                                            <span class="input-group-text border-warning-subtle">Bs.</span>
+                                            <input type="number" name="precio" class="form-control border-warning-subtle" id="edit_precio"
                                                 step="0.01" min="0" required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="edit_stock" class="form-label">Stock</label>
-                                        <input type="number" name="stock" class="form-control" id="edit_stock"
+                                        <label for="edit_stock" class="form-label border-warning-subtle">Stock</label>
+                                        <input type="number" name="stock" class="form-control border-warning-subtle" id="edit_stock"
                                             min="0" required>
                                     </div>
                                 </div>
@@ -1162,8 +1165,8 @@
                                     <div class="col-md-4">
                                         <label for="edit_descuento" class="form-label">Descuento fijo</label>
                                         <div class="input-group">
-                                            <span class="input-group-text">Bs.</span>
-                                            <input type="number" name="descuento" class="form-control"
+                                            <span class="input-group-text border-warning-subtle">Bs.</span>
+                                            <input type="number" name="descuento" class="form-control border-warning-subtle"
                                                 id="edit_descuento" step="0.01" min="0">
                                         </div>
                                     </div>
@@ -1171,27 +1174,27 @@
                                         <label for="edit_descuento_porcentaje" class="form-label">Descuento
                                             porcentual</label>
                                         <div class="input-group">
-                                            <span class="input-group-text">%</span>
-                                            <input type="number" name="descuento_porcentaje" class="form-control"
+                                            <span class="input-group-text border-warning-subtle">%</span>
+                                            <input type="number" name="descuento_porcentaje" class="form-control border-warning-subtle"
                                                 id="edit_descuento_porcentaje" min="0" max="100">
                                         </div>
                                     </div>
                                     <div class="col-md-4" id="edit_fecha_vencimiento_container">
-                                        <label for="edit_fecha_vencimiento" class="form-label">Fecha de
+                                        <label for="edit_fecha_vencimiento" class="form-label border-warning-subtle">Fecha de
                                             vencimiento</label>
                                         <input type="date" name="fecha_vencimiento" id="edit_fecha_vencimiento"
-                                            class="form-control">
+                                            class="form-control border-warning-subtle">
                                     </div>
                                 </div>
 
                                 <h6 class="mb-3">Imágenes</h6>
                                 <div class="row mb-3" id="edit_imagenes_container">
-                                    <!-- Existing images will be populated here by JS -->
+                                    <!-- las imagenes serán cargadas aqui por JavaScript -->
                                 </div>
                                 <div class="mb-3">
-                                    <label for="edit_nuevas_imagenes" class="form-label">Añadir nuevas imágenes</label>
+                                    <label for="edit_nuevas_imagenes" class="form-label ">Añadir nuevas imágenes</label>
                                     <input type="file" name="nuevas_imagenes[]" id="edit_nuevas_imagenes"
-                                        class="form-control" multiple>
+                                        class="form-control border-warning-subtle" multiple>
                                 </div>
                             </div>
 
@@ -1213,7 +1216,7 @@
                                                                 "especificaciones[{$productoTipo->tipo->id}]" .
                                                                 ($esColor ? '' : '[]');
                                                         @endphp
-                                                        <input class="form-check-input" type="{{ $inputType }}"
+                                                        <input class="form-check-input border-warning-subtle" type="{{ $inputType }}"
                                                             name="{{ $inputName }}" value="{{ $especificacion->id }}"
                                                             id="edit_spec_{{ $especificacion->id }}">
                                                         <label class="form-check-label d-flex align-items-center gap-2"
@@ -1238,10 +1241,60 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer mt-3">
-                        <button type="button" class="btn bg-danger" data-bs-dismiss="modal"
-                            style="color: white;">Cerrar</button>
-                        <button type="submit" class="btn bg-info" style="color: white;">Guardar Cambios</button>
+                    <div class="modal-footer d-flex justify-content-end">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                            <i class="ri-close-line me-1"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="ri-check-fill align-middle me-1"></i>Actualizar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Ajuste de Stock -->
+    <div class="modal fade" id="ajustarStockModal" tabindex="-1" aria-labelledby="ajustarStockModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header justify-content-center position-relative">
+                    <h3 class="modal-title text-uppercase fw-bold text-secondary-emphasis text-center w-100"
+                        id="ajustarStockModalLabel">
+                        <i class="ri-stack-line align-middle me-1"></i> Ajustar Stock
+                    </h3>
+                    <button type="button" class="btn-close position-absolute end-0 top-50 translate-middle-y me-3"
+                        data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form id="ajustarStockForm">
+                    @csrf
+                    <input type="hidden" name="sucursal_articulo_id" id="ajuste_sucursal_articulo_id">
+                    <div class="modal-body">
+                        <div class="text-center mb-4">
+                            <h4 class="mb-1" id="ajuste_articulo_nombre"></h4>
+                            <p class="text-muted mb-0">Stock actual: <span class="fw-bold fs-4"
+                                    id="ajuste_stock_actual"></span></p>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ajuste_cantidad" class="form-label">Cantidad a Mover</label>
+                            <input type="number" class="form-control border-secondary-subtle" id="ajuste_cantidad" name="cantidad"
+                                min="1" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer d-flex justify-content-end">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                            <i class="ri-close-line me-1"></i>
+                            Cancelar
+                        </button>
+                        <button type="submit" name="action" value="remove" class="btn btn-danger">
+                            <i class="ri-indeterminate-circle-fill align-middle me-1 fs-5"></i>
+                            Restar del Stock
+                        </button>
+                        <button type="submit" name="action" value="add" class="btn btn-success">
+                            <i class="ri-add-box-fill align-middle me-1 fs-5"></i>
+                            Añadir al Stock
+                        </button>
                     </div>
                 </form>
             </div>
@@ -1735,6 +1788,7 @@
 
                 $('#edit_articulo_id').val(articulo.articulo.id);
                 $('#edit_sucursal_articulo_id').val(articulo.id);
+                $('#edit_nombre').val(articulo.articulo.nombre);
                 $('#edit_precio').val(articulo.precio);
                 $('#edit_stock').val(articulo.stock);
                 $('#edit_descuento').val(articulo.descuento);
@@ -1758,7 +1812,7 @@
                             <div class="col-md-4 mb-3 image-item-edit" data-image-id="${imagen.id}">
                                 <div class="card mb-0">
                                     <div class="card-body p-2">
-                                        <img src="${imageUrl}" class="img-fluid mb-2" alt="Imagen ${index + 1}">
+                                        <img src="${imageUrl}" class="img-fluid mb-2" alt="Imagen ${index + 1}" style="max-height: 150px; width: 100%; object-fit: contain;">
                                         <button type="button" class="btn btn-danger btn-sm w-100 delete-existing-image" data-image-id="${imagen.id}">Eliminar</button>
                                     </div>
                                 </div>
@@ -1827,6 +1881,56 @@
                     },
                     error: function(xhr) {
                         alert(xhr.responseJSON?.message || 'Error al actualizar el artículo.');
+                    }
+                });
+            });
+
+            // ajustar stock
+            $('.ajustarStockBtn').on('click', function() {
+                const articuloData = $(this).data('bs-obj');
+                $('#ajuste_sucursal_articulo_id').val(articuloData.id);
+                $('#ajuste_articulo_nombre').text(articuloData.articulo.nombre);
+                $('#ajuste_stock_actual').text(articuloData.stock);
+                $('#ajustarStockForm')[0].reset();
+            });
+
+            $('#ajustarStockForm').submit(function(e) {
+                e.preventDefault();
+
+                const action = $(document.activeElement).val();
+                if (action !== 'add' && action !== 'remove') return;
+
+                const form = $(this);
+                const submitButton = $(document.activeElement);
+                const originalButtonText = submitButton.html();
+
+                form.find('button[type="submit"]').prop('disabled', true);
+                submitButton.html(
+                    '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>'
+                );
+
+                const formData = new FormData(this);
+                formData.set('action', action);
+
+                $.ajax({
+                    url: "{{ route('admin.articulos.ajustar-stock') }}",
+                    method: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        alert(res.message);
+                        if (res.success) {
+                            $('#ajustarStockModal').modal('hide');
+                            location.reload();
+                        }
+                    },
+                    error: function(xhr) {
+                        alert(xhr.responseJSON?.message || 'Ocurrió un error.');
+                    },
+                    complete: function() {
+                        form.find('button[type="submit"]').prop('disabled', false);
+                        submitButton.html(originalButtonText);
                     }
                 });
             });
